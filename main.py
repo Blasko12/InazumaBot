@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from deep_translator import GoogleTranslator
+
 from config import DISCORD_WEBHOOK, RSS_URL
 from rss import obtener_publicacion_mas_reciente
 from discord_sender import enviar_publicacion
@@ -33,6 +35,19 @@ def guardar_ultimo_id(publicacion_id):
         )
 
 
+def traducir_al_espanol(texto):
+    try:
+        traduccion = GoogleTranslator(
+            source="auto",
+            target="es"
+        ).translate(texto)
+
+        return traduccion or "No fue posible generar la traducción."
+    except Exception as error:
+        print("No se pudo traducir:", error)
+        return "La traducción no estuvo disponible en este momento."
+
+
 def main():
     if not DISCORD_WEBHOOK:
         print("Falta DISCORD_WEBHOOK en el archivo .env")
@@ -49,7 +64,7 @@ def main():
         return
 
     ultimo_id = cargar_ultimo_id()
-    publicacion_id = publicacion["enlace"].strip()
+    publicacion_id = publicacion["id"]
 
     print("ID guardado:", repr(ultimo_id))
     print("ID encontrado:", repr(publicacion_id))
@@ -59,18 +74,26 @@ def main():
         return
 
     print("Nueva publicación detectada.")
+    print("Traduciendo al español...")
+
+    traduccion = traducir_al_espanol(publicacion["titulo"])
+
+    print("Imágenes encontradas:", len(publicacion["imagenes"]))
+    print("Videos encontrados:", len(publicacion["videos"]))
 
     enviar_publicacion(
         webhook_url=DISCORD_WEBHOOK,
         nombre_cuenta=publicacion["nombre_feed"],
-        texto=publicacion["titulo"],
+        texto_original=publicacion["titulo"],
+        texto_traducido=traduccion,
         enlace=publicacion["enlace"],
-        imagen_url=publicacion["imagen"]
+        imagenes=publicacion["imagenes"],
+        videos=publicacion["videos"]
     )
 
     guardar_ultimo_id(publicacion_id)
 
-    print("Publicación enviada y registrada correctamente.")
+    print("Publicación traducida, enviada y registrada correctamente.")
 
 
 if __name__ == "__main__":

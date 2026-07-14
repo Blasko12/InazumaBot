@@ -10,19 +10,74 @@ def obtener_publicacion_mas_reciente(rss_url):
     entrada = feed.entries[0]
 
     enlace = entrada.get("link", "").strip()
+    imagenes = []
+    videos = []
 
-    imagen_url = None
-    media = entrada.get("media_content", [])
+    for medio in entrada.get("media_content", []):
+        url = medio.get("url", "").strip()
+        tipo = medio.get("type", "").lower()
+        medium = medio.get("medium", "").lower()
 
-    if media:
-        imagen_url = media[0].get("url")
+        if not url:
+            continue
+
+        if (
+            medium == "video"
+            or tipo.startswith("video/")
+            or url.lower().endswith((".mp4", ".webm", ".mov"))
+        ):
+            videos.append(url)
+
+        elif (
+            medium == "image"
+            or tipo.startswith("image/")
+            or url.lower().endswith(
+                (".jpg", ".jpeg", ".png", ".gif", ".webp")
+            )
+        ):
+            imagenes.append(url)
+
+    for archivo in entrada.get("enclosures", []):
+        url = (
+            archivo.get("href")
+            or archivo.get("url")
+            or ""
+        ).strip()
+
+        tipo = archivo.get("type", "").lower()
+
+        if not url:
+            continue
+
+        if (
+            tipo.startswith("video/")
+            or url.lower().endswith((".mp4", ".webm", ".mov"))
+        ):
+            videos.append(url)
+
+        elif (
+            tipo.startswith("image/")
+            or url.lower().endswith(
+                (".jpg", ".jpeg", ".png", ".gif", ".webp")
+            )
+        ):
+            imagenes.append(url)
+
+    imagenes = list(dict.fromkeys(imagenes))
+    videos = list(dict.fromkeys(videos))
 
     return {
-        # Usamos el enlace como ID estable.
         "id": enlace,
-        "titulo": entrada.get("title", "Nueva publicación"),
+        "titulo": entrada.get(
+            "title",
+            "Nueva publicación"
+        ).strip(),
         "enlace": enlace,
         "fecha": entrada.get("published", ""),
-        "imagen": imagen_url,
-        "nombre_feed": feed.feed.get("title", "Cuenta de X")
+        "imagenes": imagenes,
+        "videos": videos,
+        "nombre_feed": feed.feed.get(
+            "title",
+            "Cuenta de X"
+        )
     }
