@@ -1,4 +1,6 @@
-import requests
+import discord
+
+COLOR_INAZUMA = 0x009DFF
 
 
 def recortar_texto(texto, limite):
@@ -11,58 +13,63 @@ def recortar_texto(texto, limite):
     return texto[:limite - 3] + "..."
 
 
-def enviar_publicacion(
-    webhook_url,
-    nombre_cuenta,
+def crear_embed(
     texto_original,
     texto_traducido,
     enlace,
     imagenes=None,
-    videos=None
 ):
     imagenes = imagenes or []
-    videos = videos or []
 
     descripcion = (
         "━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
         "**📝 Publicación original**\n\n"
-
         f"{recortar_texto(texto_original,1800)}"
-
         "\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
         "**🌎 Traducción al español**\n\n"
-
         f"{recortar_texto(texto_traducido,1800)}"
-
         "\n\n━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
         f"🔗 **[Ver publicación original en X]({enlace})**"
     )
 
-    embed = {
-        "title": "⚽ INAZUMA ELEVEN CROSS",
-        "description": descripcion,
+    embed = discord.Embed(
+        title="⚽ INAZUMA ELEVEN CROSS",
+        description=descripcion,
+        url=enlace,
+        color=COLOR_INAZUMA
+    )
 
-        "url": enlace,
+    embed.set_author(
+        name="📰 Nueva noticia oficial"
+    )
 
-        # Azul Inazuma
-        "color": 0x009DFF,
-
-        "author": {
-            "name": "📰 Nueva noticia oficial"
-        },
-
-        "footer": {
-            "text": "⚽ InazumaBot • Noticias oficiales de Inazuma Eleven Cross"
-        }
-    }
+    embed.set_footer(
+        text="⚽ InazumaBot • Noticias oficiales de Inazuma Eleven Cross"
+    )
 
     if imagenes:
-        embed["image"] = {
-            "url": imagenes[0]
-        }
+        embed.set_image(url=imagenes[0])
+
+    return embed
+
+
+async def enviar_a_canal(
+    canal,
+    texto_original,
+    texto_traducido,
+    enlace,
+    imagenes=None,
+    videos=None,
+):
+
+    videos = videos or []
+
+    embed = crear_embed(
+        texto_original,
+        texto_traducido,
+        enlace,
+        imagenes
+    )
 
     contenido = "⚡ **Nueva noticia oficial de Inazuma Eleven Cross**"
 
@@ -70,18 +77,7 @@ def enviar_publicacion(
         contenido += "\n\n🎥 **Video oficial:**\n"
         contenido += "\n".join(videos)
 
-    payload = {
-        "username": "InazumaBot",
-
-        "content": contenido,
-
-        "embeds": [embed]
-    }
-
-    respuesta = requests.post(
-        webhook_url,
-        json=payload,
-        timeout=30
+    await canal.send(
+        content=contenido,
+        embed=embed
     )
-
-    respuesta.raise_for_status()
