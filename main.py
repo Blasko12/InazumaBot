@@ -1,5 +1,5 @@
 import json
-
+from keep_alive import mantener_activo
 from pathlib import Path
 
 import discord
@@ -547,5 +547,5 @@ if not RSS_URL:
         "Falta RSS_URL en el archivo .env"
     )
 
-
+mantener_activo()
 bot.run(DISCORD_BOT_TOKEN)
