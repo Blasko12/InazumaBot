@@ -21,7 +21,7 @@ def health():
     return {"status": "ok"}
 
 
-def ejecutar_servidor():
+def ejecutar_servidor() -> None:
     puerto = int(os.getenv("PORT", "10000"))
 
     app.run(
@@ -32,7 +32,7 @@ def ejecutar_servidor():
     )
 
 
-def mantener_activo():
+def mantener_activo() -> None:
     hilo = Thread(
         target=ejecutar_servidor,
         daemon=True,
