@@ -3,5 +3,10 @@
     "server_name": "",
     "channel_id": 1526469700094136410,
     "channel_name": "prueba-bot"
+  },
+  "700206033494343693": {
+    "server_name": "tacosR7c",
+    "channel_id": 700207851645304842,
+    "channel_name": "ayuda-para-equipos"
   }
 }
